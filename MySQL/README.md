@@ -1,16 +1,16 @@
 ## MySQL
 
-
-
+PXC全称(Percona XtraDB Cluster)
 
 ### PXC 集群方案
 
+#### 使用Percona Server来搭建PXC集群
 
 #### 特点
 
 速度慢、强一致性、高价值
 
-
+PXC集群采用同步复制，事物在所有集群节点要么同时提交要么不提交
 
 
 ### Repliaction 集群方案
