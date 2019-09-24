@@ -1,0 +1,27 @@
+version: '3'
+services:
+  csrs1:
+    image: mongo:latest
+    container_name: csrs1
+    command: mongod --noauth --configsvr --replSet csrs --dbpath /data/db
+  csrs2:
+    image: mongo:latest
+    container_name: csrs2
+    command: mongod --noauth --configsvr --replSet csrs --dbpath /data/db
+  csrs3:
+    image: mongo:latest
+    container_name: csrs3
+    command: mongod --noauth --configsvr --replSet csrs --dbpath /data/db
+  mongos:
+    image: mongo:latest
+    container_name: mongos1
+    command: mongos --noauth --configdb csrs/csrs1:27019,csrs2:27019,csrs3:27019
+  shrs1:
+    image: mongo:latest
+    command: mongod --noauth --dbpath /data/db --shardsvr --replSet shrs
+  shrs2:
+    image: mongo:latest
+    command: mongod --noauth --dbpath /data/db --shardsvr --replSet shrs
+  shrs3:
+    image: mongo:latest
+    command: mongod --noauth --dbpath /data/db --shardsvr --replSet shrs

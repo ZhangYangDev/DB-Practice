@@ -70,3 +70,10 @@
    #创建Cluster集群
    ./redis-trib.rb create --replicas 1 172.19.0.2:6379 172.19.0.3:6379 172.19.0.4:6379 172.19.0.5:6379 172.19.0.6:6379 172.19.0.7:6379
    ```
+
+
+
+
+   ### 参考 
+
+Redis中文社区 http://redis.cn/documentation.html
