@@ -1,7 +1,19 @@
-version: '3'
-
+version: '3.1'
 services:
-
-volumes:
-
-networks:
+  master:
+    image: redis
+    container_name: rds-master
+    ports:
+      - 6379:6379
+  slave1:
+    image: redis
+    container_name: rds-slv1
+    ports:
+      - 6380:6379
+    command: redis-server --slaveof rds-master 6379  #绑定至master
+  slave2:           
+    image: redis
+    container_name: rds-slv2
+    ports:                                                          
+      - 6381:6379
+    command: redis-server --slaveof rds-master 6379  #绑定至master
