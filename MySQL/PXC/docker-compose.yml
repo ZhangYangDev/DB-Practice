@@ -1,42 +1,58 @@
 version: '3'
 services:
-  master:
+  pmaster:
     image: percona/percona-xtradb-cluster:5.7
-    container_name: dbmaster
+    container_name: pmaster
     ports:
       - 3306:3306
     networks:
       - pxcnet
+    volumes:
+      - pxcmaster:/var/lib/mysql
     environment:
       - "CLUSTER_NAME=dbcluster"
       - "XTRABACKUP_PASSWORD=root"
       - "MYSQL_ROOT_PASSWORD=root"
       - "TZ=Asia/Shanghai"
-  node1:
+  pnode1:
     image: percona/percona-xtradb-cluster:5.7
-    container_name: pxcnode1
+    container_name: pnode1
     ports:
       - 3307:3306
     networks:
       - pxcnet
+    depends_on:
+      - pmaster
+    volumes:
+      - pxcnode1:/var/lib/mysql
     environment:
       - "CLUSTER_NAME=dbcluster"
       - "XTRABACKUP_PASSWORD=root"
-      - "CLUSTER_JOIN=dbmaster"
+      - "CLUSTER_JOIN=pmaster"
       - "TZ=Asia/Shanghai"
-  node2: 
+  pnode2: 
     image: percona/percona-xtradb-cluster:5.7
-    container_name: pxcnode2
+    container_name: pnode2
     ports:
       - 3308:3306
     networks:
       - pxcnet
+    volumes:
+      - pxcnode2:/var/lib/mysql
+    depends_on:
+      - pmaster
     environment:
       - "CLUSTER_NAME=dbcluster"
       - "XTRABACKUP_PASSWORD=root"
-      - "CLUSTER_JOIN=dbmaster"
+      - "CLUSTER_JOIN=pmaster"
       - "TZ=Asia/Shanghai"
 
 networks:
   pxcnet:
     driver: bridge
+
+volumes:
+  pxcmaster:
+  pxcnode1:
+  pxcnode2:
+

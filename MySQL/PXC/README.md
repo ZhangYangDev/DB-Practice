@@ -1,13 +1,13 @@
 ## MySQL PXC 集群
 
-### 安装PXC镜像
+### 拉取PXC镜像
 ```shell
-[root@dk ~]# docker pull percona/percona-xtradb-cluster    # 拉取镜像
+[root@dk ~]# percona/percona-xtradb-cluster:5.7    # 拉取镜像
 [root@dk ~]# docker tag percona/percona-xtradb-cluster pxc # 为镜像改名
 [root@dk ~]# docker images
 REPOSITORY                           TAG                 IMAGE ID            CREATED             SIZE
 pxc                                  latest              aef0b3032083        2 days ago          827MB
-percona/percona-xtradb-cluster       latest              aef0b3032083        2 days ago          827MB
+percona/percona-xtradb-cluster:5.7      latest              aef0b3032083        2 days ago          827MB
 ```
 ### 网络数据卷配置
 
@@ -96,107 +96,7 @@ local               vol5
 
 ### 创建PXC级群节点
 
-1. node1
-```shell
-docker run -d -p 3306:3306 \
--e MYSQL_ROOT_PASSWORD=root \
--e CLUSTER_NAME=PXC \
--e XTRABACKUP_PASSWORD=root \
--v vol1:/var/lib/mysql \
--v pxcbakup:/data \
---privileged \
---name=node1 \
---net=pxcnet 
-pxc
-```
-docker run -d -p 3306:3306  \
-  -e MYSQL_ROOT_PASSWORD=root \
-  -e CLUSTER_NAME=PXC \
-  -e XTRABACKUP_PASSWORD=root \
-  -v vol1:/var/lib/mysql \
-  --privileged \
-  --name=node1 \
-  --net=pxcnet \
-  pxc
-
-
-1. node2
-```shell
-docker run -d -p 3307:3306 \
--e MYSQL_ROOT_PASSWORD=P@ssw0rd \
--e CLUSTER_NAME=PXC \
--e XTRABACKUP_PASSWORD=P@ssw0rd \
--e CLUSTER_JOIN=node1 \
--v vol2:/var/lib/mysql \
---privileged \
---name=node2 \
---net=pxcnet \
---ip 172.18.0.3 pxc
-```
-3. node3
-```shell
-docker run -d -p 3308:3306 \
--e MYSQL_ROOT_PASSWORD=root \
--e CLUSTER_NAME=PXC \
--e XTRABACKUP_PASSWORD=root \
--e CLUSTER_JOIN=node1 \
--v vol3:/var/lib/mysql \
---privileged \
---name=node3 \
---net=pxcnet \
---ip 172.18.0.4 pxc
-```
-4. node4
-```shell
-docker run -d -p 3309:3306 \
--e MYSQL_ROOT_PASSWORD=root \
--e CLUSTER_NAME=PXC \
--e XTRABACKUP_PASSWORD=root \
--e CLUSTER_JOIN=node1 \
--v vol1:/var/lib/mysql \
---privileged \
---name=node4 \
---net=pxcnet \
---ip 172.18.0.5 pxc
-```
-5. node5
-```shell
-docker run -d -p 3310:3306 \
--e MYSQL_ROOT_PASSWORD=root \
--e CLUSTER_NAME=PXC \
--e XTRABACKUP_PASSWORD=root \
--e CLUSTER_JOIN=node1 \
--v vol1:/var/lib/mysql \
---privileged \
---name=node5 \
---net=pxcnet \
---ip 172.18.0.6 pxc
-
-```
-
-
-
-docker run -d -p 3306:3306  \
-  -e MYSQL_ROOT_PASSWORD=root \
-  -e CLUSTER_NAME=PXC \
-  -v vol1:/var/lib/mysql \
-  --name=node1 \
-  --net=pxcnet \
-  pxc
-
-
-
-参数说明：
-
--e MYSQL_ROOT_PASSWORD : 创建的MySQL实例的密码 
--e CLUSTER_NAME=PXC \  : 创建出来的集群的名称
--e XTRABACKUP_PASSWORD=root : 创建好的集群直接同步数据的密码
--e CLUSTER_JOIN=node1  : 加入到哪个节点中
-
-
-
-
-
+1. pmaster
 
 ```shell
 docker run -di \
@@ -208,9 +108,11 @@ docker run -di \
 -e CLUSTER_NAME=cluster1 \
 -e XTRABACKUP_PASSWORD=123456  \
 percona/percona-xtradb-cluster:5.7 
+```
 
 
-
+2. pnode2
+```shell
 
 docker run -di \
 --name=pn2 \
@@ -223,8 +125,11 @@ docker run -di \
 -e CLUSTER_JOIN=pn1 \
 percona/percona-xtradb-cluster:5.7 
 
+```
 
 
+3. node2
+```shell
 docker run -di \
 --name=pn3 \
 --net=sqlnet \
@@ -236,3 +141,93 @@ docker run -di \
 -e CLUSTER_JOIN=pn1 \
 percona/percona-xtradb-cluster:5.7 
 ```
+
+
+
+参数说明：
+
+-e MYSQL_ROOT_PASSWORD : 创建的MySQL实例的密码 
+-e CLUSTER_NAME=PXC \  : 创建出来的集群的名称
+-e XTRABACKUP_PASSWORD=root : 创建好的集群直接同步数据的密码
+-e CLUSTER_JOIN=node1  : 加入到哪个节点中
+
+
+
+### docker-compose 
+
+```yml
+version: '3'
+services:
+  pmaster:
+    image: percona/percona-xtradb-cluster:5.7
+    container_name: pmaster
+    ports:
+      - 3306:3306
+    networks:
+      - pxcnet
+    volumes:
+      - pxcmaster:/var/lib/mysql
+    environment:
+      - "CLUSTER_NAME=dbcluster"
+      - "XTRABACKUP_PASSWORD=root"
+      - "MYSQL_ROOT_PASSWORD=root"
+      - "TZ=Asia/Shanghai"
+  pnode1:
+    image: percona/percona-xtradb-cluster:5.7
+    container_name: pnode1
+    ports:
+      - 3307:3306
+    networks:
+      - pxcnet
+    depends_on:
+      - pmaster
+    volumes:
+      - pxcnode1:/var/lib/mysql
+    environment:
+      - "CLUSTER_NAME=dbcluster"
+      - "XTRABACKUP_PASSWORD=root"
+      - "CLUSTER_JOIN=pmaster"
+      - "TZ=Asia/Shanghai"
+  pnode2: 
+    image: percona/percona-xtradb-cluster:5.7
+    container_name: pnode2
+    ports:
+      - 3308:3306
+    networks:
+      - pxcnet
+    volumes:
+      - pxcnode2:/var/lib/mysql
+    depends_on:
+      - pmaster
+    environment:
+      - "CLUSTER_NAME=dbcluster"
+      - "XTRABACKUP_PASSWORD=root"
+      - "CLUSTER_JOIN=pmaster"
+      - "TZ=Asia/Shanghai"
+
+networks:
+  pxcnet:
+    driver: bridge
+
+volumes:
+  pxcmaster:
+  pxcnode1:
+  pxcnode2:
+
+```
+
+
+
+## 验证集群状态
+
+```sql
+ show status like '%wsrep%';
+```
+
+
+
+
+## 参考文章
+
+
+https://blog.csdn.net/weixin_34004576/article/details/94305979  
