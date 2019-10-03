@@ -2,13 +2,13 @@ version: '3'
 services:
   master:
     image: percona/percona-xtradb-cluster:5.7
-    container_name: pxcmaster
+    container_name: dbmaster
     ports:
       - 3306:3306
     networks:
       - pxcnet
     environment:
-      - "CLUSTER_NAME=PXCluster"
+      - "CLUSTER_NAME=dbcluster"
       - "XTRABACKUP_PASSWORD=root"
       - "MYSQL_ROOT_PASSWORD=root"
       - "TZ=Asia/Shanghai"
@@ -20,9 +20,9 @@ services:
     networks:
       - pxcnet
     environment:
-      - "CLUSTER_NAME=PXCluster"
+      - "CLUSTER_NAME=dbcluster"
       - "XTRABACKUP_PASSWORD=root"
-      - "CLUSTER_JOIN=pxcmaster"
+      - "CLUSTER_JOIN=dbmaster"
       - "TZ=Asia/Shanghai"
   node2: 
     image: percona/percona-xtradb-cluster:5.7
@@ -32,9 +32,9 @@ services:
     networks:
       - pxcnet
     environment:
-      - "CLUSTER_NAME=PXCluster"
+      - "CLUSTER_NAME=dbcluster"
       - "XTRABACKUP_PASSWORD=root"
-      - "CLUSTER_JOIN=pxcmaster"
+      - "CLUSTER_JOIN=dbmaster"
       - "TZ=Asia/Shanghai"
 
 networks:

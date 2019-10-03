@@ -192,3 +192,47 @@ docker run -d -p 3306:3306  \
 -e CLUSTER_NAME=PXC \  : 创建出来的集群的名称
 -e XTRABACKUP_PASSWORD=root : 创建好的集群直接同步数据的密码
 -e CLUSTER_JOIN=node1  : 加入到哪个节点中
+
+
+
+
+
+
+```shell
+docker run -di \
+--name=pn1 \
+--net=sqlnet \
+-p 9000:3306 \
+--privileged \
+-e MYSQL_ROOT_PASSWORD=root \
+-e CLUSTER_NAME=cluster1 \
+-e XTRABACKUP_PASSWORD=123456  \
+percona/percona-xtradb-cluster:5.7 
+
+
+
+
+docker run -di \
+--name=pn2 \
+--net=sqlnet \
+-p 9001:3306 \
+--privileged \
+-e MYSQL_ROOT_PASSWORD=root \
+-e CLUSTER_NAME=cluster1 \
+-e XTRABACKUP_PASSWORD=123456 \
+-e CLUSTER_JOIN=pn1 \
+percona/percona-xtradb-cluster:5.7 
+
+
+
+docker run -di \
+--name=pn3 \
+--net=sqlnet \
+-p 9002:3306 \
+--privileged \
+-e MYSQL_ROOT_PASSWORD=root \
+-e CLUSTER_NAME=cluster1 \
+-e XTRABACKUP_PASSWORD=123456 \
+-e CLUSTER_JOIN=pn1 \
+percona/percona-xtradb-cluster:5.7 
+```
